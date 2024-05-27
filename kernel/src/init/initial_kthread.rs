@@ -34,7 +34,7 @@ fn kernel_init() -> Result<(), SystemError> {
     // scm_enable_double_buffer().expect("Failed to enable double buffer");
 
     #[cfg(target_arch = "x86_64")]
-    let _=crate::driver::disk::ahci::ahci_init();
+    crate::driver::disk::ahci::ahci_init().ok();
     // crate::driver::disk::ahci::ahci_init().expect("Failed to initialize AHCI");
 
     virtio_probe();
