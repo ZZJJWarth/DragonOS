@@ -27,11 +27,15 @@ pub fn virtio_probe() {
 #[allow(dead_code)]
 fn virtio_probe_pci() {
     let mut list = PCI_DEVICE_LINKEDLIST.write();
-    let virtio_list = virtio_device_search(&mut list);
+    let mut virtio_list = virtio_device_search(&mut list);
+    let mut add=0;
+    virtio_list.reverse();
     for virtio_device in virtio_list {
         let dev_id = virtio_device.common_header.device_id;
         let dev_id = DeviceId::new(None, Some(format!("{dev_id}"))).unwrap();
-        match PciTransport::new::<HalImpl>(virtio_device, dev_id.clone()) {
+        debug!("114514");
+        match PciTransport::new::<HalImpl>(virtio_device, dev_id.clone(),add) {
+            
             Ok(mut transport) => {
                 debug!(
                     "Detected virtio PCI device with device type {:?}, features {:#018x}",
@@ -45,6 +49,7 @@ fn virtio_probe_pci() {
                 error!("Pci transport create failed because of error: {}", err);
             }
         }
+        add+=1;
     }
 }
 

@@ -600,6 +600,7 @@ pub struct PciDeviceStructurePciToCardbusBridge {
     pub subsystem_device_id: u16,
     pub subsystem_vendor_id: u16,
     pub pc_card_legacy_mode_base_address_16_bit: u32,
+    pub irq_type:IrqType,
 }
 impl PciDeviceStructure for PciDeviceStructurePciToCardbusBridge {
     #[inline(always)]
@@ -936,6 +937,7 @@ fn pci_read_pci_to_cardbus_bridge_header(
 
     let pc_card_legacy_mode_base_address_16_bit =
         pci_root_0().read_config(*busdevicefunction, 0x44);
+    let irq_type=IrqType::Unused;
     PciDeviceStructurePciToCardbusBridge {
         common_header,
         cardbus_socket_ex_ca_base_address,
@@ -960,6 +962,7 @@ fn pci_read_pci_to_cardbus_bridge_header(
         subsystem_device_id,
         subsystem_vendor_id,
         pc_card_legacy_mode_base_address_16_bit,
+        irq_type,
     }
 }
 

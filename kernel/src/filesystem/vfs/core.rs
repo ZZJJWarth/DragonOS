@@ -148,7 +148,7 @@ fn root_partition() -> Result<Arc<Partition>,SystemError> { //114514
 }
 pub fn mount_root_fs() -> Result<(), SystemError> {
     info!("Try to mount FAT32 as root fs...");
-    let partiton: Arc<Partition> = root_partition();
+    let partiton: Arc<Partition> = root_partition()?;
 
     let fatfs: Result<Arc<FATFileSystem>, SystemError> = FATFileSystem::new(partiton);
     if fatfs.is_err() {

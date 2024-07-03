@@ -18,6 +18,8 @@ use crate::mm::VirtAddr;
 
 use alloc::string::ToString;
 use alloc::sync::Arc;
+use log::debug;
+use core::ops::Add;
 use core::{
     fmt::{self, Display, Formatter},
     mem::{align_of, size_of},
@@ -119,8 +121,9 @@ impl PciTransport {
     pub fn new<H: Hal>(
         device: &mut PciDeviceStructureGeneralDevice,
         dev_id: Arc<DeviceId>,
+        add:usize
     ) -> Result<Self, VirtioPciError> {
-        let irq = VIRTIO_RECV_VECTOR;
+        let irq = VIRTIO_RECV_VECTOR.add(add as u32);
         let header = &device.common_header;
         let bus_device_function = header.bus_device_function;
         if header.vendor_id != VIRTIO_VENDOR_ID {
@@ -155,6 +158,7 @@ impl PciTransport {
         standard_device.irq_install(msg)?;
         standard_device.irq_enable(true)?;
         //device_capability为迭代器，遍历其相当于遍历所有的cap空间
+        
         for capability in device.capabilities().unwrap() {
             if capability.id != PCI_CAP_ID_VNDR {
                 continue;
@@ -199,7 +203,7 @@ impl PciTransport {
                 _ => {}
             }
         }
-
+        // debug!("114514,pci");
         let common_cfg = get_bar_region::<_>(
             &device.standard_device_bar,
             &common_cfg.ok_or(VirtioPciError::MissingCommonConfig)?,

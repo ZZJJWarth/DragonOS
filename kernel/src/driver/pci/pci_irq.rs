@@ -6,7 +6,7 @@ use core::ptr::NonNull;
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use log::error;
+use log::{debug, error};
 use system_error::SystemError;
 
 use super::pci::{PciDeviceStructure, PciDeviceStructureGeneralDevice, PciError};
@@ -172,6 +172,7 @@ pub trait PciInterrupt: PciDeviceStructure {
                     self.common_header().bus_device_function,
                     (cap_offset + 8).into(),
                 );
+                
                 let pending_table_bar = (data & 0x07) as u8;
                 let pending_table_offset = data & (!0x07);
                 *self.irq_type_mut()? = IrqType::Msix {
@@ -182,6 +183,7 @@ pub trait PciInterrupt: PciDeviceStructure {
                     irq_max_num,
                     cap_offset,
                 };
+                
                 return Some(IrqType::Msix {
                     msix_table_bar,
                     msix_table_offset,
@@ -323,8 +325,11 @@ pub trait PciInterrupt: PciDeviceStructure {
                 )));
             }
         }
+        
         self.irq_enable(false)?; //中断设置更改前先关闭对应PCI设备的中断
+        debug!("114514,>");
         if let Some(irq_type) = self.irq_type_mut() {
+            debug!("114514,>{:?}",irq_type);
             match *irq_type {
                 IrqType::Msix { .. } => {
                     return self.msix_install(msg);
