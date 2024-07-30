@@ -18,7 +18,6 @@ use crate::mm::VirtAddr;
 
 use alloc::string::ToString;
 use alloc::sync::Arc;
-use log::debug;
 use core::ops::Add;
 use core::{
     fmt::{self, Display, Formatter},
@@ -142,9 +141,10 @@ impl PciTransport {
         // 目前缺少对PCI设备中断号的统一管理，所以这里需要指定一个中断号。不能与其他中断重复
         let irq_vector = standard_device.irq_vector_mut().unwrap();
         irq_vector.push(irq);
+        
         standard_device
             .irq_init(IRQ::PCI_IRQ_MSIX)
-            .expect("IRQ init failed");
+            .ok_or_else(|| VirtioPciError::MissingCommonConfig)?;
         // 中断相关信息
         let msg = PciIrqMsg {
             irq_common_message: IrqCommonMsg::init_from(

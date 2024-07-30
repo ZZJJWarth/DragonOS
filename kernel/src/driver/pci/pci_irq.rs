@@ -157,8 +157,11 @@ pub trait PciInterrupt: PciDeviceStructure {
     /// @return Option<IrqType> 失败返回None，成功则返回对应中断类型
     fn irq_init(&mut self, flag: IRQ) -> Option<IrqType> {
         // MSIX中断优先
+        debug!("we got irq_init!");
         if flag.contains(IRQ::PCI_IRQ_MSIX) {
+            debug!("we contains IRP::PCI_IRQ_MSIX");
             if let Some(cap_offset) = self.msix_capability_offset() {
+                debug!("get 1 if in");
                 let data = pci_root_0()
                     .read_config(self.common_header().bus_device_function, cap_offset.into());
                 let irq_max_num = ((data >> 16) & 0x7ff) as u16 + 1;
@@ -175,6 +178,7 @@ pub trait PciInterrupt: PciDeviceStructure {
                 
                 let pending_table_bar = (data & 0x07) as u8;
                 let pending_table_offset = data & (!0x07);
+                debug!("182:*self.irq_type_mut()? = IrqType::Msix: begin");
                 *self.irq_type_mut()? = IrqType::Msix {
                     msix_table_bar,
                     msix_table_offset,
@@ -183,7 +187,7 @@ pub trait PciInterrupt: PciDeviceStructure {
                     irq_max_num,
                     cap_offset,
                 };
-                
+                debug!("182:*self.irq_type_mut()? = IrqType::Msix: end");
                 return Some(IrqType::Msix {
                     msix_table_bar,
                     msix_table_offset,
@@ -196,6 +200,7 @@ pub trait PciInterrupt: PciDeviceStructure {
         }
         // 其次MSI
         if flag.contains(IRQ::PCI_IRQ_MSI) {
+            debug!("we contains IRP::PCI_IRQ_MSI");
             if let Some(cap_offset) = self.msi_capability_offset() {
                 let data = pci_root_0()
                     .read_config(self.common_header().bus_device_function, cap_offset.into());
@@ -203,12 +208,14 @@ pub trait PciInterrupt: PciDeviceStructure {
                 let maskable = (message_control & 0x0100) != 0;
                 let address_64 = (message_control & 0x0080) != 0;
                 let irq_max_num = (1 << (((message_control & 0x000e) >> 1) + 1)) as u16;
+                debug!("212:*self.irq_type_mut()? = IrqType::Msi  begin");
                 *self.irq_type_mut()? = IrqType::Msi {
                     address_64,
                     maskable,
                     irq_max_num,
                     cap_offset,
                 };
+                debug!("212:*self.irq_type_mut()? = IrqType::Msi  end");
                 return Some(IrqType::Msi {
                     address_64,
                     maskable,
@@ -219,9 +226,11 @@ pub trait PciInterrupt: PciDeviceStructure {
         }
         // 最后选择legacy#
         if flag.contains(IRQ::PCI_IRQ_LEGACY) {
+            debug!("we contains IRP::PCI_IRQ_LEGACY");
             *self.irq_type_mut()? = IrqType::Legacy;
             return Some(IrqType::Legacy);
         }
+        debug!("we contains nothing!!!!");
         None
     }
 

@@ -1,12 +1,13 @@
+use core::iter;
+
 use super::mmio::virtio_probe_mmio;
 use super::transport_pci::PciTransport;
 use super::virtio_impl::HalImpl;
 use crate::driver::base::device::DeviceId;
-use crate::driver::block::virtio_blk::virtio_blk;
+use crate::driver::block::virtio_blk::{virtio_blk, virtio_blk_driver_init, VIRTIO_BLK_DRIVER};
 use crate::driver::net::virtio_net::virtio_net;
 use crate::driver::pci::pci::{
-    get_pci_device_structures_mut_by_vendor_id, PciDeviceStructure,
-    PciDeviceStructureGeneralDevice, PCI_DEVICE_LINKEDLIST,
+    get_pci_device_structures_mut_by_vendor_id, PciDeviceStructure, PciDeviceStructureGeneralDevice, PCI_CAP_ID_MSIX, PCI_DEVICE_LINKEDLIST
 };
 use crate::driver::virtio::transport::VirtIOTransport;
 use crate::libs::rwlock::RwLockWriteGuard;
@@ -22,6 +23,7 @@ pub fn virtio_probe() {
     #[cfg(not(target_arch = "riscv64"))]
     virtio_probe_pci();
     virtio_probe_mmio();
+    // virtio_blk_driver_init().unwrap();
 }
 
 #[allow(dead_code)]
@@ -33,24 +35,65 @@ fn virtio_probe_pci() {
     for virtio_device in virtio_list {
         let dev_id = virtio_device.common_header.device_id;
         let dev_id = DeviceId::new(None, Some(format!("{dev_id}"))).unwrap();
-        debug!("114514");
+        debug!("probing pci virtio device-cpt:{:?},vendor:{:?},device_id:{:?}",virtio_device.capabilities_pointer,virtio_device.common_header.vendor_id,virtio_device.common_header.device_id);
+        
+        // for i in virtio_device.capabilities().unwrap(){
+        //     debug!("CapabilityInfo:{:?}",i);
+        // }
+        // let mut a=0;
+        // continue;
+        // let mut compatible_flag=false;
+        // for i in virtio_device.capabilities().unwrap(){
+        //     if i.id==PCI_CAP_ID_MSIX{
+        //        compatible_flag=true; 
+        //     }
+        // }
+        // if !compatible_flag {
+        //     break;
+        // }
         match PciTransport::new::<HalImpl>(virtio_device, dev_id.clone(),add) {
             
             Ok(mut transport) => {
+                if virtio_device.common_header.vendor_id==6900&&virtio_device.common_header.device_id==4097{
+                    let standard_device = virtio_device.as_standard_device_mut().unwrap();
+                    let a=standard_device.msix_capability_offset();
+                    // for i in 0..1500{
+                        debug!("4097's msix offset={:?}",a);
+                    // }
+                    debug!(
+                        "Detected virtio PCI device with device type {:?}, features {:#018x}",
+                        transport.device_type(),
+                        transport.read_device_features(),
+                    );
+                    loop{}
+                }
                 debug!(
                     "Detected virtio PCI device with device type {:?}, features {:#018x}",
                     transport.device_type(),
                     transport.read_device_features(),
                 );
                 let transport = VirtIOTransport::Pci(transport);
+                
                 virtio_device_init(transport, dev_id);
             }
             Err(err) => {
+                if virtio_device.common_header.vendor_id==6900&&virtio_device.common_header.device_id==4097{
+                    let standard_device = virtio_device.as_standard_device_mut().unwrap();
+                    let a=standard_device.msix_capability_offset();
+                    // for i in 0..1500{
+                        debug!("4097's msix offset={:?}",a);
+                    // }
+                    error!("Pci transport create failed because of error: {}", err);
+                    loop{}
+                }
                 error!("Pci transport create failed because of error: {}", err);
+                
             }
         }
+       
         add+=1;
     }
+    // loop{}
 }
 
 ///@brief 为virtio设备寻找对应的驱动进行初始化

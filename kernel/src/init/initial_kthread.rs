@@ -38,6 +38,7 @@ fn kernel_init() -> Result<(), SystemError> {
     // crate::driver::disk::ahci::ahci_init().expect("Failed to initialize AHCI");
 
     virtio_probe();
+    
     mount_root_fs().expect("Failed to mount root fs");
 
     e1000e_init();

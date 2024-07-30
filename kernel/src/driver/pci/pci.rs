@@ -14,6 +14,7 @@ use crate::libs::rwlock::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::mm::mmio_buddy::{mmio_pool, MMIOSpaceGuard};
 
 use crate::mm::VirtAddr;
+use crate::time::{sleep, PosixTimeSpec};
 
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -394,10 +395,12 @@ pub trait PciDeviceStructure: Send + Sync {
     }
     /// @brief 寻找设备的msix空间的offset
     fn msix_capability_offset(&self) -> Option<u8> {
+        debug!("we start msix_capability_offset()!");
         for capability in self.capabilities()? {
             if capability.id == PCI_CAP_ID_MSIX {
                 return Some(capability.offset);
             }
+            
         }
         None
     }
@@ -1443,19 +1446,24 @@ pub struct CapabilityIterator {
 impl Iterator for CapabilityIterator {
     type Item = CapabilityInfo;
     fn next(&mut self) -> Option<Self::Item> {
+        
+        debug!("offset:{:?}",self.next_capability_offset);
         let offset = self.next_capability_offset?;
-
         // Read the first 4 bytes of the capability.
         let capability_header = pci_root_0().read_config(self.bus_device_function, offset.into());
         let id = capability_header as u8;
         let next_offset = (capability_header >> 8) as u8;
         let private_header = (capability_header >> 16) as u16;
-
+        // let id = (capability_header >> 24) as u8;
+        // let next_offset = (capability_header >> 16) as u8;
+        // let private_header = capability_header  as u16;
+        debug!("capability_header:{}",capability_header);
         self.next_capability_offset = if next_offset == 0 {
             None
         } else if next_offset < 64 || next_offset & 0x3 != 0 {
             warn!("Invalid next capability offset {:#04x}", next_offset);
             None
+            // Some(next_offset)
         } else {
             Some(next_offset)
         };
