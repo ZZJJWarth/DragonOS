@@ -37,9 +37,9 @@ fn virtio_probe_pci() {
         let dev_id = DeviceId::new(None, Some(format!("{dev_id}"))).unwrap();
         debug!("probing pci virtio device-cpt:{:?},vendor:{:?},device_id:{:?}",virtio_device.capabilities_pointer,virtio_device.common_header.vendor_id,virtio_device.common_header.device_id);
         
-        // for i in virtio_device.capabilities().unwrap(){
-        //     debug!("CapabilityInfo:{:?}",i);
-        // }
+        for i in virtio_device.capabilities().unwrap(){
+            debug!("CapabilityInfo:{:?}",i);
+        }
         // let mut a=0;
         // continue;
         // let mut compatible_flag=false;
@@ -65,7 +65,7 @@ fn virtio_probe_pci() {
                         transport.device_type(),
                         transport.read_device_features(),
                     );
-                    loop{}
+                    // loop{}
                 }
                 debug!(
                     "Detected virtio PCI device with device type {:?}, features {:#018x}",
@@ -84,7 +84,7 @@ fn virtio_probe_pci() {
                         debug!("4097's msix offset={:?}",a);
                     // }
                     error!("Pci transport create failed because of error: {}", err);
-                    loop{}
+                    // loop{}
                 }
                 error!("Pci transport create failed because of error: {}", err);
                 

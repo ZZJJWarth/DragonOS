@@ -54,20 +54,20 @@ pub fn virtio_blk_driver() -> Arc<VirtIOBlkDriver> {
 /// Get the first virtio block device
 #[allow(dead_code)]
 pub fn virtio_blk_0() -> Option<Arc<VirtIOBlkDevice>> {
-    let device = virtio_blk_driver().devices();
-    // for i in device{
-    //     // i.arc_any().downcast().unwrap();
+    // let device = virtio_blk_driver().devices();
+    // // for i in device{
+    // //     // i.arc_any().downcast().unwrap();
+    // // }
+    // match device.first(){
+    //     Some(_)=>{
+    //         println!("get device!");
+    //         loop{}
+    //     },
+    //     None=>{
+    //         println!("ng, no device");
+    //         loop{}
+    //     }
     // }
-    match device.first(){
-        Some(_)=>{
-            println!("get device!");
-            loop{}
-        },
-        None=>{
-            println!("ng, no device");
-            loop{}
-        }
-    }
     virtio_blk_driver()
         .devices()
         .first()

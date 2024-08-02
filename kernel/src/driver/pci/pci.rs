@@ -1447,17 +1447,14 @@ impl Iterator for CapabilityIterator {
     type Item = CapabilityInfo;
     fn next(&mut self) -> Option<Self::Item> {
         
-        debug!("offset:{:?}",self.next_capability_offset);
+        // debug!("offset:{:?}",self.next_capability_offset);
         let offset = self.next_capability_offset?;
         // Read the first 4 bytes of the capability.
         let capability_header = pci_root_0().read_config(self.bus_device_function, offset.into());
         let id = capability_header as u8;
         let next_offset = (capability_header >> 8) as u8;
         let private_header = (capability_header >> 16) as u16;
-        // let id = (capability_header >> 24) as u8;
-        // let next_offset = (capability_header >> 16) as u8;
-        // let private_header = capability_header  as u16;
-        debug!("capability_header:{}",capability_header);
+        // debug!("capability_header:{}",capability_header);
         self.next_capability_offset = if next_offset == 0 {
             None
         } else if next_offset < 64 || next_offset & 0x3 != 0 {
