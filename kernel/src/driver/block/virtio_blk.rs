@@ -44,7 +44,7 @@ use crate::{
 
 const VIRTIO_BLK_BASENAME: &str = "virtio_blk";
 
-pub static mut VIRTIO_BLK_DRIVER: Option<Arc<VirtIOBlkDriver>> = None;
+static mut VIRTIO_BLK_DRIVER: Option<Arc<VirtIOBlkDriver>> = None;
 
 #[inline(always)]
 pub fn virtio_blk_driver() -> Arc<VirtIOBlkDriver> {
@@ -54,20 +54,6 @@ pub fn virtio_blk_driver() -> Arc<VirtIOBlkDriver> {
 /// Get the first virtio block device
 #[allow(dead_code)]
 pub fn virtio_blk_0() -> Option<Arc<VirtIOBlkDevice>> {
-    // let device = virtio_blk_driver().devices();
-    // // for i in device{
-    // //     // i.arc_any().downcast().unwrap();
-    // // }
-    // match device.first(){
-    //     Some(_)=>{
-    //         println!("get device!");
-    //         loop{}
-    //     },
-    //     None=>{
-    //         println!("ng, no device");
-    //         loop{}
-    //     }
-    // }
     virtio_blk_driver()
         .devices()
         .first()
@@ -380,7 +366,7 @@ impl KObject for VirtIOBlkDevice {
 }
 
 #[unified_init(INITCALL_POSTCORE)]
-pub fn virtio_blk_driver_init() -> Result<(), SystemError> {
+fn virtio_blk_driver_init() -> Result<(), SystemError> {
     let driver = VirtIOBlkDriver::new();
     virtio_driver_manager()
         .register(driver.clone() as Arc<dyn VirtIODriver>)
@@ -395,7 +381,7 @@ pub fn virtio_blk_driver_init() -> Result<(), SystemError> {
 #[derive(Debug)]
 #[cast_to([sync] VirtIODriver)]
 #[cast_to([sync] Driver)]
-pub struct VirtIOBlkDriver {
+struct VirtIOBlkDriver {
     inner: SpinLock<InnerVirtIOBlkDriver>,
     kobj_state: LockedKObjectState,
 }
@@ -434,10 +420,8 @@ impl VirtIODriver for VirtIOBlkDriver {
                 "VirtIOBlkDriver::probe() failed: device is not a VirtIO block device. Device: '{:?}'",
                 device.name()
             );
-                // loop{}
                 SystemError::EINVAL
             })?;
-            // loop{}
         return Ok(());
     }
 }
@@ -448,7 +432,6 @@ impl Driver for VirtIOBlkDriver {
     }
 
     fn add_device(&self, device: Arc<dyn Device>) {
-        debug!("we are adding device 114514");
         let iface = device
             .arc_any()
             .downcast::<VirtIOBlkDevice>()
