@@ -56,7 +56,7 @@ EOF
 echo "Creating virtual disk image..."
 ARGS=`getopt -o P: -- "$@"`
 # 创建一至少为256MB磁盘镜像（类型选择raw）
-qemu-img create -f raw ${DISK_NAME} 1024M
+qemu-img create -f raw ${DISK_NAME} 2048M
 #将规范化后的命令行参数分配至位置参数（$1,$2,...)
 eval set -- "${ARGS}"
 #echo formatted parameters=[$@]
