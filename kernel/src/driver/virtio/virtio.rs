@@ -31,7 +31,7 @@ fn virtio_probe_pci() {
     for virtio_device in virtio_list {
         let dev_id = virtio_device.common_header.device_id;
         let dev_id = DeviceId::new(None, Some(format!("{dev_id}"))).unwrap();
-        match PciTransport::new::<HalImpl>(virtio_device, dev_id.clone(),0) {
+        match PciTransport::new::<HalImpl>(virtio_device, dev_id.clone()) {
             Ok(mut transport) => {
                 debug!(
                     "Detected virtio PCI device with device type {:?}, features {:#018x}",
