@@ -122,7 +122,8 @@ impl PciTransport {
         dev_id: Arc<DeviceId>,
         add:usize
     ) -> Result<Self, VirtioPciError> {
-        let irq = VIRTIO_RECV_VECTOR.add(add as u32);
+        let irq = VIRTIO_RECV_VECTOR;
+        // let irq = VIRTIO_RECV_VECTOR.add(add as u32);
         let header = &device.common_header;
         let bus_device_function = header.bus_device_function;
         if header.vendor_id != VIRTIO_VENDOR_ID {
@@ -141,10 +142,9 @@ impl PciTransport {
         // 目前缺少对PCI设备中断号的统一管理，所以这里需要指定一个中断号。不能与其他中断重复
         let irq_vector = standard_device.irq_vector_mut().unwrap();
         irq_vector.push(irq);
-        
         standard_device
-            .irq_init(IRQ::PCI_IRQ_MSIX)
-            .ok_or_else(|| VirtioPciError::MissingCommonConfig)?;
+            .irq_init(IRQ::PCI_IRQ_MSIX|IRQ::PCI_IRQ_MSI)
+            .ok_or_else(|| VirtioPciError::UnableToInitIrq)?;
         // 中断相关信息
         let msg = PciIrqMsg {
             irq_common_message: IrqCommonMsg::init_from(
@@ -158,7 +158,6 @@ impl PciTransport {
         standard_device.irq_install(msg)?;
         standard_device.irq_enable(true)?;
         //device_capability为迭代器，遍历其相当于遍历所有的cap空间
-        
         for capability in device.capabilities().unwrap() {
             if capability.id != PCI_CAP_ID_VNDR {
                 continue;
@@ -203,7 +202,6 @@ impl PciTransport {
                 _ => {}
             }
         }
-        // debug!("114514,pci");
         let common_cfg = get_bar_region::<_>(
             &device.standard_device_bar,
             &common_cfg.ok_or(VirtioPciError::MissingCommonConfig)?,
@@ -449,6 +447,8 @@ pub enum VirtioPciError {
     /// `VIRTIO_PCI_CAP_NOTIFY_CFG` capability has a `notify_off_multiplier` that is not a multiple
     /// of 2.
     InvalidNotifyOffMultiplier(u32),
+    /// Unable to find capability such as MSIX or MSI 
+    UnableToInitIrq,
     /// No valid `VIRTIO_PCI_CAP_ISR_CFG` capability was found.
     MissingIsrConfig,
     /// An IO BAR was provided rather than a memory BAR.

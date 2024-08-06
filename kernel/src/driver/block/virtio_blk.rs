@@ -47,7 +47,7 @@ const VIRTIO_BLK_BASENAME: &str = "virtio_blk";
 static mut VIRTIO_BLK_DRIVER: Option<Arc<VirtIOBlkDriver>> = None;
 
 #[inline(always)]
-pub fn virtio_blk_driver() -> Arc<VirtIOBlkDriver> {
+fn virtio_blk_driver() -> Arc<VirtIOBlkDriver> {
     unsafe { VIRTIO_BLK_DRIVER.as_ref().unwrap().clone() }
 }
 
@@ -422,6 +422,7 @@ impl VirtIODriver for VirtIOBlkDriver {
             );
                 SystemError::EINVAL
             })?;
+
         return Ok(());
     }
 }
