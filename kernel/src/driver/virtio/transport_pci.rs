@@ -202,6 +202,7 @@ impl PciTransport {
                 _ => {}
             }
         }
+        
         let common_cfg = get_bar_region::<_>(
             &device.standard_device_bar,
             &common_cfg.ok_or(VirtioPciError::MissingCommonConfig)?,
