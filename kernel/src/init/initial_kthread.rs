@@ -35,10 +35,8 @@ fn kernel_init() -> Result<(), SystemError> {
 
     #[cfg(target_arch = "x86_64")]
     crate::driver::disk::ahci::ahci_init().ok();
-    // crate::driver::disk::ahci::ahci_init().expect("Failed to initialize AHCI");
 
     virtio_probe();
-    
     mount_root_fs().expect("Failed to mount root fs");
     e1000e_init();
     net_init().unwrap_or_else(|err| {

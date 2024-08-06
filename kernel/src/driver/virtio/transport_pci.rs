@@ -202,7 +202,7 @@ impl PciTransport {
                 _ => {}
             }
         }
-        
+
         let common_cfg = get_bar_region::<_>(
             &device.standard_device_bar,
             &common_cfg.ok_or(VirtioPciError::MissingCommonConfig)?,
@@ -448,7 +448,7 @@ pub enum VirtioPciError {
     /// `VIRTIO_PCI_CAP_NOTIFY_CFG` capability has a `notify_off_multiplier` that is not a multiple
     /// of 2.
     InvalidNotifyOffMultiplier(u32),
-    /// Unable to find capability such as MSIX or MSI 
+    /// Unable to find capability such as MSIX or MSI.
     UnableToInitIrq,
     /// No valid `VIRTIO_PCI_CAP_ISR_CFG` capability was found.
     MissingIsrConfig,
@@ -478,6 +478,10 @@ impl Display for VirtioPciError {
                 f,
                 "PCI device vender ID {:#06x} was not the VirtIO vendor ID {:#06x}.",
                 vendor_id, VIRTIO_VENDOR_ID
+            ),
+            Self::UnableToInitIrq=>write!(
+                f,
+                "Unable to find capability such as MSIX or MSI."
             ),
             Self::MissingCommonConfig => write!(
                 f,
